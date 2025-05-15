@@ -1,4 +1,4 @@
-namespace Deployer_Web.Data.Enum;
+namespace oneAppWeb.Data.Enum;
 
 public enum SettingType
 {

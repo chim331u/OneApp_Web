@@ -1,7 +1,11 @@
-﻿@using OneApp_Web.Data.DTOs.DockerDeployDTOs
+﻿@inject NotificationService NotificationService
+@inject TooltipService tooltipService
+@inject DialogService DialogService
+
 <RadzenNotification></RadzenNotification>
 <RadzenDialog></RadzenDialog>
 <RadzenTooltip></RadzenTooltip>
+
 @if (dockerConfig != null)
 {
     <h2 class="rz-color-secondary">@dockerConfig.Name (Id: @dockerConfig.Id)</h2>
@@ -641,16 +645,16 @@ else
 
     #region Tooltips
 
-    void ShowTooltipViewDockerFile(ElementReference elementReference, TooltipOptions options = null) => tooltipService.Open(elementReference, "DockerFile preview", options);
-
-    void ShowTooltipSolutionRepo(ElementReference elementReference, TooltipOptions options = null) => tooltipService.Open(elementReference, "-b [branch] + master", options);
-    void ShowTooltipSDKVersion(ElementReference elementReference, TooltipOptions options = null) => tooltipService.Open(elementReference, "i.e. 7.0-bullseye-slim-arm32v7", options);
-
-    //-b dotNet7
-    void ShowTooltipRepoBranch(ElementReference elementReference, TooltipOptions options = null) => tooltipService.Open(elementReference, "i.e. dotNet7", options);
-
-    //./solutionFolder/add.csprj
-    void ShowTooltipRestoreBuildPrj(ElementReference elementReference, TooltipOptions options = null) => tooltipService.Open(elementReference, "i.e. dotNet7.csproj", options);
+    // void ShowTooltipViewDockerFile(ElementReference elementReference, TooltipOptions options = null) => tooltipService.Open(elementReference, "DockerFile preview", options);
+    //
+    // void ShowTooltipSolutionRepo(ElementReference elementReference, TooltipOptions options = null) => tooltipService.Open(elementReference, "-b [branch] + master", options);
+    // void ShowTooltipSDKVersion(ElementReference elementReference, TooltipOptions options = null) => tooltipService.Open(elementReference, "i.e. 7.0-bullseye-slim-arm32v7", options);
+    //
+    // //-b dotNet7
+    // void ShowTooltipRepoBranch(ElementReference elementReference, TooltipOptions options = null) => tooltipService.Open(elementReference, "i.e. dotNet7", options);
+    //
+    // //./solutionFolder/add.csprj
+    // void ShowTooltipRestoreBuildPrj(ElementReference elementReference, TooltipOptions options = null) => tooltipService.Open(elementReference, "i.e. dotNet7.csproj", options);
 
     #endregion
 

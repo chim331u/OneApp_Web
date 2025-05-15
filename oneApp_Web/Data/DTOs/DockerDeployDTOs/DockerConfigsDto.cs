@@ -1,4 +1,4 @@
-using Deployer_Web.Data.Enum;
+using oneAppWeb.Data.Enum;
 
 namespace OneApp_Web.Data.DTOs.DockerDeployDTOs;
 
