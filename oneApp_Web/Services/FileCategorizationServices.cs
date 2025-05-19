@@ -134,7 +134,7 @@ public class FileCategorizationServices : IFileCategorizationService
 
     public async Task<FilesDetailDto> UpdateFileDetail(FilesDetailDto item)
     {
-        Uri uri = new Uri(string.Format(GetRestUrl() + $"api/v1/UpdateFilesDetailDto", string.Empty));
+        Uri uri = new Uri(string.Format(GetRestUrl() + $"api/v1/UpdateFilesDetail/{item.Id}", string.Empty));
 
         try
         {

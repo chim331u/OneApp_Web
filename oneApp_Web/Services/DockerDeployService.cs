@@ -55,7 +55,55 @@ public class DockerDeployService : IDockerDeployService
             return null;
         }
     }
+    
+    
+    public async Task<string> GetRunningContainerCommand()
+    {
+        Uri uri = new Uri(string.Format(GetRestUrl() + $"api/v1/GetRunningContainersCommand", string.Empty));
 
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync(uri);
+            if (response.IsSuccessStatusCode)
+            {
+                string content = await response.Content.ReadAsStringAsync();
+                var dataResponse = JsonSerializer.Deserialize<DockerCommandResponse<string>>(content, _serializerOptions);
+                return dataResponse.Data;
+            }
+
+            return string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(@"\tERROR {0}", ex.Message);
+
+            return string.Empty;
+        }
+    }
+
+    public async Task<string> GetImagesCommand()
+    {
+        Uri uri = new Uri(string.Format(GetRestUrl() + $"api/v1/GetImageListCommand", string.Empty));
+
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync(uri);
+            if (response.IsSuccessStatusCode)
+            {
+                string content = await response.Content.ReadAsStringAsync();
+                var dataResponse = JsonSerializer.Deserialize<DockerCommandResponse<string>>(content, _serializerOptions);
+                return dataResponse.Data;
+            }
+
+            return string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(@"\tERROR {0}", ex.Message);
+
+            return string.Empty;
+        }
+    }
     public async Task<DockerConfigsDto?> GetDockerConfig(int id)
     {
         Uri uri = new Uri(string.Format(GetRestUrl() + $"api/v1/GetDockerConfig/{id}", string.Empty));

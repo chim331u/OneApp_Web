@@ -43,6 +43,8 @@
                             <RadzenButton ButtonStyle="ButtonStyle.Info" Click=@(args => command="docker images") Icon="keyboard_command_key" Text="Images"></RadzenButton>
                             <RadzenButton ButtonStyle="ButtonStyle.Info" Click=@(args => command="docker container ls ") Icon="keyboard_command_key" Text="Container"></RadzenButton>
                             <RadzenButton ButtonStyle="ButtonStyle.Info" Click=@(args => command="docker images") Icon="keyboard_command_key" Text="Other"></RadzenButton>
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Click=@GetRunningContainerCommand Icon="keyboard_command_key" Text="Containers command"></RadzenButton>
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Click=@GetImagesCommand Icon="keyboard_command_key" Text="Images command"></RadzenButton>
                         </RadzenStack>
 
                     </RadzenColumn>
@@ -223,6 +225,36 @@
 
     }
 
+    private async Task GetRunningContainerCommand()
+    {
+        var result = await _service.GetRunningContainerCommand();
+
+        if (string.IsNullOrEmpty(result))
+        {
+            command = "docker ps -a";
+        }
+        else
+        {
+            command= result;
+        }
+        // ConsoleResultText += $"> {command} {Environment.NewLine}";
+    }    
+    
+    private async Task GetImagesCommand()
+    {
+        var result = await _service.GetImagesCommand();
+
+        if (string.IsNullOrEmpty(result))
+        {
+            command = "docker images";
+        }
+        else
+        {
+            command= result;
+        }
+       // ConsoleResultText += $"> {command} {Environment.NewLine}";
+    }
+    
     // private void OnClick(bool _dockerCommand)    {
 
     //     dockerCommand = _dockerCommand;

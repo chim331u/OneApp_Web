@@ -21,4 +21,7 @@ public interface IDockerDeployService
 
     Task<DeployDetailDto> UpdateDeployDetail(int id, string result);
     Task<DockerCommandResponse<string>> SendCommand(int id, string command);
+    
+    Task<string> GetRunningContainerCommand();
+    Task<string> GetImagesCommand();
 }
