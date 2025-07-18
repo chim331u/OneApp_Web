@@ -19,5 +19,6 @@ builder.Services.AddScoped<ContextMenuService>();
 builder.Services.AddScoped<IDockerDeployService, DockerDeployService>();
 builder.Services.AddScoped<IFileCategorizationService, FileCategorizationServices>();
 builder.Services.AddScoped<IWebScrumServices, WebScrumServices>();
+builder.Services.AddScoped<ISettingsService, SettingsService>();
 
 await builder.Build().RunAsync();

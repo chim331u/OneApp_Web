@@ -347,7 +347,7 @@ public class FileCategorizationServices : IFileCategorizationService
 
     public async Task<string> TrainModel()
     {
-        Uri uri = new Uri(string.Format(GetRestUrl() + $"api/TrainModel", string.Empty));
+        Uri uri = new Uri(string.Format(GetRestUrl() + $"api/v1/TrainModel", string.Empty));
 
         try
         {
@@ -369,7 +369,7 @@ public class FileCategorizationServices : IFileCategorizationService
 
     public async Task<string> ForceCategory()
     {
-        Uri uri = new Uri(string.Format(GetRestUrl() + $"api/ForceCategory", string.Empty));
+        Uri uri = new Uri(string.Format(GetRestUrl() + $"api/v1/ForceCategory", string.Empty));
 
         try
         {
@@ -392,7 +392,7 @@ public class FileCategorizationServices : IFileCategorizationService
 
     public async Task<List<FilesDetailDto>> GetFileToMove()
     {
-        Uri uri = new Uri(string.Format(GetRestUrl() + $"api/GetFileToMove", string.Empty));
+        Uri uri = new Uri(string.Format(GetRestUrl() + $"api/v1/GetFileToMove", string.Empty));
 
         var dataResponse = new List<FilesDetailDto>();
 

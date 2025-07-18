@@ -1,7 +1,211 @@
 @page "/Settings"
+@using SettingDto = oneAppWeb.Data.DTOs.SettingDto
 <h3>Settings</h3>
+
+<RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="true" @ref="settingsGrid"
+                FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="15" AllowPaging="true"
+                PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true" ColumnWidth="250px"
+                Data="@settings" TItem="SettingDto" LogicalFilterOperator="LogicalFilterOperator.Or"
+                EditMode="DataGridEditMode.Single" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow"
+                Sort="@Reset" Page="@Reset" Filter="@Reset">
+    <HeaderTemplate>
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="Add New Order" Click="@InsertRow" Disabled="@(editMode == DataGridEditMode.Single && settingsToInsert.Count() > 0)" />
+    </HeaderTemplate>
+    <Columns>
+        <RadzenDataGridColumn Property="Id" Title="ID" Width="20px" Frozen="true" />
+        <RadzenDataGridColumn Property="Alias" Title="Alias" Width="100px">
+            <Template Context="setting">
+                <RadzenText>@setting.Alias</RadzenText>
+            </Template>
+            <EditTemplate Context="setting">
+                <RadzenTextBox @bind-Value="setting.Alias" Style="width:100%" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select Alias" }})" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="User" Title="User" Width="100px">
+            <Template Context="setting">
+                <RadzenText>@setting.User</RadzenText>
+            </Template>
+            <EditTemplate Context="setting">
+                <RadzenTextBox @bind-Value="setting.User" Style="width:100%" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select User" }})" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="Password" Title="Password" Width="100px">
+            <Template Context="setting">
+                <RadzenPassword>@setting.Password</RadzenPassword>
+            </Template>
+            <EditTemplate Context="setting">
+                <RadzenTextBox @bind-Value="setting.Password" Style="width:100%" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select Password" }})" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="Address" Title="Address" Width="120px">
+            <Template Context="setting">
+                <RadzenText>@setting.Address</RadzenText>
+            </Template>
+            <EditTemplate Context="setting">
+                <RadzenTextBox @bind-Value="setting.Address" Style="width:100%" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select Address" }})" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="DockerCommandPath" Title="Docker Com Path" Width="100px">
+            <Template Context="setting">
+                <RadzenText>@setting.DockerCommandPath</RadzenText>
+            </Template>
+            <EditTemplate Context="setting">
+                <RadzenTextBox @bind-Value="setting.DockerCommandPath" Style="width:100%" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select Docker Command Path" }})" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="DockerFilePath" Title="DockerFile Path" Width="100px">
+            <Template Context="setting">
+                <RadzenText>@setting.DockerFilePath</RadzenText>
+            </Template>
+            <EditTemplate Context="setting">
+                <RadzenTextBox @bind-Value="setting.DockerFilePath" Style="width:100%" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select DockerFile Path" }})" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Context="setting" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+            <Template Context="order">
+                @* <RadzenButton Icon="add_circle" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Shade="Shade.Lighter" Click="@(() => InsertAfterRow(order))" title="Add new row after this row" Disabled="@(editMode == DataGridEditMode.Single && settingsToInsert.Count() > 0)" /> *@
+                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@(args => EditRow(order))" @onclick:stopPropagation="true" />
+                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Medium" Shade="Shade.Lighter" class="rz-my-1 rz-ms-1" Click="@(args => DeleteRow(order))" @onclick:stopPropagation="true" />
+            </Template>
+            <EditTemplate Context="setting">
+                <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(setting))" aria-label="Save"/>
+                <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@((args) => CancelEdit(setting))" aria-label="Cancel"/>
+                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Medium" Shade="Shade.Lighter" class="rz-my-1 rz-ms-1" Click="@(args => DeleteRow(setting))" aria-label="Delete" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
 
 
 @code {
     
+    [Inject]
+    public ISettingsService _service { get; set; }
+    
+    RadzenDataGrid<SettingDto> settingsGrid;
+    IEnumerable<SettingDto> settings;
+    DataGridEditMode editMode = DataGridEditMode.Single;
+
+    List<SettingDto> settingsToInsert = new List<SettingDto>();
+    List<SettingDto> settingsToUpdate = new List<SettingDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        settings = await _service.GetSettingsList();
+        //dbContext.Orders.Include("Customer").Include("Employee");
+    }
+    
+    void Reset()
+    {
+        settingsToInsert.Clear();
+        settingsToUpdate.Clear();
+    }
+
+    void Reset(SettingDto setting)
+    {
+        settingsToInsert.Remove(setting);
+        settingsToUpdate.Remove(setting);
+    }
+
+    async Task EditRow(SettingDto setting)
+    {
+        if (!settingsGrid.IsValid) return;
+
+        if (editMode == DataGridEditMode.Single)
+        {
+            Reset();
+        }
+
+        settingsToUpdate.Add(setting);
+        await settingsGrid.EditRow(setting);
+    }
+
+    void OnUpdateRow(SettingDto setting)
+    {
+        Reset(setting);
+        //
+        // dbContext.Update(setting);
+        var result = _service.UpadateSetting(setting);
+        //
+        // dbContext.SaveChanges();
+    }
+
+    async Task SaveRow(SettingDto setting)
+    {
+        await settingsGrid.UpdateRow(setting);
+    }
+
+    void CancelEdit(SettingDto setting)
+    {
+        Reset(setting);
+
+        settingsGrid.CancelEditRow(setting);
+
+        // var orderEntry = dbContext.Entry(setting);
+        // if (orderEntry.State == EntityState.Modified)
+        // {
+        //     orderEntry.CurrentValues.SetValues(orderEntry.OriginalValues);
+        //     orderEntry.State = EntityState.Unchanged;
+        // }
+    }
+
+    async Task DeleteRow(SettingDto setting)
+    {
+        Reset(setting);
+
+        if (settings.Contains(setting))
+        {
+            // dbContext.Remove<SettingDto>(setting);
+            var result = await _service.DeleteSetting(setting);
+            //
+            // dbContext.SaveChanges();
+
+            await settingsGrid.Reload();
+        }
+        else
+        {
+            settingsGrid.CancelEditRow(setting);
+            await settingsGrid.Reload();
+        }
+    }
+
+    async Task InsertRow()
+    {
+        if (!settingsGrid.IsValid) return;
+
+        if (editMode == DataGridEditMode.Single)
+        {
+            Reset();
+        }
+
+        var setting = new SettingDto();
+        settingsToInsert.Add(setting);
+        await settingsGrid.InsertRow(setting);
+    }
+
+    async Task InsertAfterRow(SettingDto row)
+    {
+        if (!settingsGrid.IsValid) return;
+
+        if (editMode == DataGridEditMode.Single)
+        {
+            Reset();
+        }
+
+        var setting = new SettingDto();
+        settingsToInsert.Add(setting);
+        await settingsGrid.InsertAfterRow(setting, row);
+    }
+
+    void OnCreateRow(SettingDto setting)
+    {
+        // dbContext.Add(setting);
+        var result = _service.CreateSetting(setting);
+        //
+        // dbContext.SaveChanges();
+
+        settingsToInsert.Remove(setting);
+    }
 }

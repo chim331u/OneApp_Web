@@ -1,4 +1,5 @@
-﻿@inject NotificationService NotificationService
+﻿@using oneAppWeb.Data.DTOs.DockerDeployDTOs
+@inject NotificationService NotificationService
 @inject TooltipService tooltipService
 @inject DialogService DialogService
 
@@ -310,6 +311,66 @@
                                                @bind-Value=dockerConfig.FolderContainer3 Disabled=@isupdate/>
                             </div>
                         </div>
+                        <br/>
+                        <div class="row">
+                            <div class="col-md-4 align-items-center d-flex">
+                                <RadzenFormField Text="New Param name" Variant="Variant.Text">
+                                    <RadzenTextBox @bind-Value="_dockerParameterName"/>
+                                </RadzenFormField>
+                            </div>
+                            <div class="col-md-4 align-items-center d-flex">
+                                <RadzenFormField Text="New Param Value" Variant="Variant.Text">
+                                    <RadzenTextBox @bind-Value="_dockerParameterValue"/>
+                                </RadzenFormField>
+                            </div>
+                            <div class="col-md-2 align-items-center d-flex">
+                                @* <RadzenSwitch @bind-Value=_dockerParameterCid /> *@
+                                <RadzenCheckBox @bind-Value=_dockerParameterCid Name="CheckBox1" />
+                                <RadzenLabel Text="CID" Component="CheckBox1" class="rz-ms-2" />
+                            </div>
+                            <div class="col-md-2 align-items-center d-flex">
+                                <RadzenButton Click="@AddParam" Icon="add" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"/>
+                            </div>
+                            <hr/>
+                            @foreach (var _dockerParameter in dockerParameters)
+                            {
+                                <div class="col-md-4 align-items-center d-flex">
+                                    <RadzenFormField Text="Param name" Variant="Variant.Text">
+                                        <RadzenTextBox @bind-Value="_dockerParameter.ParameterName"/>
+                                    </RadzenFormField>
+                                </div>
+                                <div class="col-md-4 align-items-center d-flex">
+                                    <RadzenFormField Text="Param Value" Variant="Variant.Text">
+                                        <RadzenTextBox @bind-Value="_dockerParameter.ParameterValue"/>
+                                    </RadzenFormField>
+                                </div>
+                                <div class="col-md-2 align-items-center d-flex">
+                                    @* <RadzenSwitch @bind-Value="_dockerParameter.CidData" /> *@
+                                    <RadzenCheckBox @bind-Value=_dockerParameter.CidData Name="CheckBox1" />
+                                    <RadzenLabel Text="CID" Component="CheckBox1" class="rz-ms-2" />
+                                </div>
+                                <div class="col-md-2 align-items-center d-flex">
+                                    <RadzenButton Click="@(e=>UpdateParam(_dockerParameter))" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"/>
+                                    <RadzenButton Click="@(e=>DeleteParam(_dockerParameter))" Icon="delete" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"/>
+
+                                    </div>
+                            }
+                            @* <div class="col-md-4 align-items-center d-flex"> *@
+                            @*     <RadzenFormField Text="Param name" Variant="Variant.Text"> *@
+                            @*         <RadzenTextBox @bind-Value="@dockerConfig.AppName"/> *@
+                            @*     </RadzenFormField> *@
+                            @* </div> *@
+                            @* <div class="col-md-4 align-items-center d-flex"> *@
+                            @*     <RadzenFormField Text="Param Value" Variant="Variant.Text"> *@
+                            @*         <RadzenTextBox @bind-Value="@dockerConfig.AppName"/> *@
+                            @*     </RadzenFormField> *@
+                            @* </div> *@
+                            @* <div class="col-md-4 align-items-center d-flex"> *@
+                            @*     <RadzenButton Click="@Delete" Icon="delete" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"/> *@
+                            @*     <RadzenButton Click="@Update" Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium"/> *@
+                            @* *@
+                            @* </div> *@
+                        </div>
                     </RadzenFieldset>
                 </div>
             </div>
@@ -375,6 +436,11 @@ else
     private SettingListDto selectedRegistrySettingDto;
     private SettingListDto selectedNasSettingDto;
 
+    private ICollection<DockerParameterDto> dockerParameters = new List<DockerParameterDto>();
+    private string _dockerParameterName = string.Empty;
+    private string _dockerParameterValue = string.Empty;
+    private bool _dockerParameterCid = false;
+    
     private bool isupdate = true;
     private int _appEntryName = 1;
 
@@ -394,6 +460,8 @@ else
             {
                 _appEntryName = 1;
             }
+
+            await GetParametersList();
         }
 
         if (duplicate)
@@ -437,7 +505,123 @@ else
         //Console.Log($"{name} value changed to {str}");
     }
 
+    private async Task GetParametersList()
+    {
+        await _controller.GetParametersList(dockerConfig.Id)
+            .ContinueWith(task =>
+            {
+                if (task.IsCompletedSuccessfully)
+                {
+                    dockerParameters = task.Result;
+                    InvokeAsync(() => StateHasChanged());
+                }
+                else
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Error",
+                        Detail = "Failed to load parameters",
+                        Duration = 4000
+                    });
+                }
+            });
 
+    }
+
+    private async Task AddParam()
+    {
+        if (!string.IsNullOrWhiteSpace(_dockerParameterName) && !string.IsNullOrWhiteSpace(_dockerParameterValue))
+        {
+            var result = await _controller.AddParameter(new DockerParameterDto
+            {
+                ParameterName = _dockerParameterName,
+                ParameterValue = _dockerParameterValue, DockerConfigId = dockerConfig.Id, 
+                CidData = _dockerParameterCid
+            });
+            
+            if (result != null)
+            {
+                dockerParameters.Add(result);
+                InvokeAsync(() => StateHasChanged());
+                //await GetParametersList();
+            }
+            else
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error",
+                    Detail = "Failed to add parameter",
+                    Duration = 4000
+                });
+            }
+            _dockerParameterName = string.Empty;
+            _dockerParameterValue = string.Empty;
+            _dockerParameterCid = false;
+        }
+    }
+
+    private async Task UpdateParam(DockerParameterDto dockerParameter)
+    {
+        if (dockerParameter != null)
+        {
+            var result = await _controller.UpdateParameter(dockerParameter.Id, dockerParameter);
+            if (result != null)
+            {
+                
+                InvokeAsync(() => StateHasChanged());
+                //await GetParametersList();
+            }
+            else
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error",
+                    Detail = "Failed to update parameter",
+                    Duration = 4000
+                });
+            }
+        }
+    }
+    
+    private async Task DeleteParam(DockerParameterDto dockerParameter)
+    {
+        if (dockerParameter != null)
+        {
+            var confirmDelete = await DialogService.Confirm($"Are you sure to delete parameter {dockerParameter.ParameterName}?", "Delete Parameter", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+
+            if (confirmDelete == true)
+            {
+                var deleteResult = await _controller.DeleteParameter(dockerParameter.Id);
+
+                if (!deleteResult)
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Parameter NOT deleted",
+                        Detail = $"Error in delete parameter: check the log",
+                        Duration = 4000
+                    });
+                }
+                else
+                {
+                    dockerParameters.Remove(dockerParameter);
+                    InvokeAsync(() => StateHasChanged());
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = "Parameter Deleted",
+                        Detail = $"Parameter {dockerParameter.ParameterName} deleted",
+                        Duration = 4000
+                    });
+                }
+            }
+        }
+    }
+    
     async Task Submit(DockerConfigsDto arg)
     {
         if (duplicate)

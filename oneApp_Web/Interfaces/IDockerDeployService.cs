@@ -1,6 +1,7 @@
 using OneApp_Web.Data.DTOs;
 using OneApp_Web.Data.DTOs.DockerDeployDTOs;
 using oneAppWeb.Data.DTOs;
+using oneAppWeb.Data.DTOs.DockerDeployDTOs;
 
 namespace OneApp_Web.Interfaces;
 
@@ -24,4 +25,11 @@ public interface IDockerDeployService
     
     Task<string> GetRunningContainerCommand();
     Task<string> GetImagesCommand();
+    Task<DockerCommandResponse<string>> GetBuildCommand(int id);
+    Task<DockerCommandResponse<string>> GetRunDockerCommand(int id);
+    Task<DockerCommandResponse<string>> CreateDockerFile(int id);
+    Task<List<DockerParameterDto>> GetParametersList(int dockerConfigId);
+    Task<DockerParameterDto> AddParameter(DockerParameterDto dockerParameterDto);
+    Task<DockerParameterDto> UpdateParameter(int dockerParameterId, DockerParameterDto dockerParameter);
+    Task<bool> DeleteParameter(int dockerParameterId);
 }

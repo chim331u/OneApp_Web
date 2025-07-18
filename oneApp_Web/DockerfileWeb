@@ -1,0 +1,26 @@
+﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+USER $APP_UID
+WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS source
+RUN apt-get update && apt-get install -y \
+	curl \
+	git \
+	unzip \
+	--no-install-recommends
+WORKDIR /build
+RUN git clone -b newBranch https://github.com/chim331u/OneApp_Web.git src
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS builder
+COPY --from=source /build/src/ /build
+WORKDIR /build/oneApp_Web
+RUN dotnet build  -c release -o /app/build
+
+FROM builder AS publish
+RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
+
+FROM nginx:alpine AS final
+WORKDIR /usr/share/nginx/html
+COPY --from=publish /app/publish/wwwroot .
